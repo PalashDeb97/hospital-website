@@ -1,108 +1,132 @@
-import { createUserWithEmailAndPassword, getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth";
-import { useEffect, useState } from 'react';
-import initializeAuth from '../Firebase/firebasre.initialize';
+import { createUserWithEmailAndPassword, getAuth, GoogleAuthProvider, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut, updateProfile } from "firebase/auth";
+import { useEffect, useState } from "react";
+import initializeAuth from "../Firebase/firebase.init";
 
 initializeAuth();
 
 const useFirebase = () => {
     const [user, setUser] = useState({});
-    const [loading, setLoading] = useState(true)
-    
-    const [email, setEmail] = useState('')
-    const [password, setPassword] = useState('')
-    const [error, setError] = useState('')
-    const [isLogIn, setIsLogIn] = useState(false)
+
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+
+    const [isLoading, setIsLoading] = useState(true);
+
+    const auth = getAuth();
 
 
-    const toggleLogIn = (e) => {
-        setIsLogIn(e.target.checked)
-    }
-    
+
+    // Handle Name
+    const handleNameChange = (e) => {
+        setName(e.target.value);
+    };
+
+    // Handle Email
     const handleEmailChange = (e) => {
         setEmail(e.target.value);
-    }
+    };
 
+    // Handle Password
     const handlePasswordChange = (e) => {
         setPassword(e.target.value);
-    }
+    };
 
-    const handleRegistration = (e) => {
-        e.preventDefault()
+    // Handle Register
+    const handleRegister = (e) => {
+        e.preventDefault();
         console.log(email, password);
 
         if (password.length < 6) {
-            setError('Password should be at least 6 characters')
+            setError('Password should be at least 6 characters');
             return;
         }
-        isLogIn ? logIn(email, password) : signIn(email, password);
+
+        createUserWithEmailAndPassword(auth, email, password)
+            .then(result => {
+                console.log(result.user);
+                setError('');
+                setUserName();
+            })
+            .catch((error) => {
+                setError(error.message);
+            })
 
     };
 
-    const logIn = (email, password) => {
-    const auth = getAuth();
-    signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-        const user = userCredential.user;
-        console.log(user);
-        })
-        .catch((error) => {
-        setError(error.message)
-        })
-    }
+    // Display Name
+    const setUserName = () => {
+        updateProfile(auth.currentUser, { displayName: name })
+        .then(() => {})
+    };
 
-    const signIn = (email, password) => {
-    const auth = getAuth();
-    createUserWithEmailAndPassword(auth, email, password)
-    .then((userCredential) => {
-        const user = userCredential.user;
-        console.log(user);
-        setError('')
-    })
-    .catch((error) => {
-        setError(error.message)
-    })
-    }
+    // Handle Login
+    const handleLogIn = (e) => {
+        e.preventDefault();
 
-
-
-
-
-
-    const auth = getAuth();
-    const googleProvider = new GoogleAuthProvider();
-
-    const signInUsingGoogle = () => {
-        signInWithPopup(auth, googleProvider)
-            .then((result) => {
+        signInWithEmailAndPassword(auth, email, password)
+            .then(result => {
                 console.log(result.user);
-                setUser(result.user)
+                setError('');
             })
-    }
+            .catch((error) => {
+                setError(error.message);
+            })
+    };
 
-    const logOut = () => {
-        signOut(auth)
-            .then(() => {
-                setUser({});
-             })
-    }
+
+
+
+
+    // google login
+    const logInWithGoogle = () => {
+        setIsLoading(true);
+        const googleProvider = new GoogleAuthProvider();
+        signInWithPopup(auth, googleProvider)
+        .then((result) => {
+            setUser(result.user);
+        })
+        .finally(() => setIsLoading(false));
+    };
+
+
 
     useEffect(() => {
-        onAuthStateChanged(auth, (user) => {
+        const unsubscribed = onAuthStateChanged(auth, (user) => {
             if (user) {
-                console.log('may name is khan', user);
                 setUser(user)
             }
-        })
+            else {
+                setUser({})
+            }
+            setIsLoading(false);
+        });
+        return () => unsubscribed;
     },[])
 
+
+    // log out
+    const logOut = () => {
+        signOut(auth)
+            .then(() => {})
+            .finally(() => setIsLoading(false));
+    }
+
+
+    
     return {
         user,
+        isLoading,
         error,
-        signInUsingGoogle,
-        logOut,
-        handleRegistration,
+        name,
+        handleNameChange,
         handleEmailChange,
-        handlePasswordChange
+        handlePasswordChange,
+        handleRegister,
+        handleLogIn,
+        logInWithGoogle,
+        logOut
     }
 }
 

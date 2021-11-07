@@ -2,19 +2,25 @@ import Button from '@restart/ui/esm/Button';
 import React from 'react';
 import { Container, Form } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import useFirebase from '../../Hooks/useFirebase';
+import useAuth from '../../Hooks/useAuth';
 
 const Register = () => {
-    const {signInUsingGoogle, handleRegistration, handlePasswordChange, handleEmailChange, error} = useFirebase();
+    const {logInWithGoogle, handleNameChange, handleRegister, handleEmailChange,  handlePasswordChange, error } = useAuth();
     
     return (
         <div>
             <div className="">
             <Container className="d-lg-flex justify-content-lg-center">
-                <Form onSubmit={handleRegistration} className="mt-5 ms-5 me-5">
+                <Form onSubmit={handleRegister} className="mt-5 ms-5 me-5">
+
+                    <Form.Group className="mb-3" controlId="formBasicPassword">
+                        <Form.Label>Name</Form.Label>
+                        <Form.Control onBlur={handleNameChange} type="text" placeholder="Name" required/>
+                    </Form.Group>
+
                     <Form.Group className="mb-3" controlId="formBasicEmail">
                         <Form.Label>Email address</Form.Label>
-                        <Form.Control onBlur={handleEmailChange} type="email" placeholder="Enter email" />
+                        <Form.Control onBlur={handleEmailChange} type="email" placeholder="Enter email" required/>
                         <Form.Text className="text-muted">
                         We'll never share your email with anyone else.
                         </Form.Text>
@@ -22,16 +28,16 @@ const Register = () => {
 
                     <Form.Group className="mb-3" controlId="formBasicPassword">
                         <Form.Label>Password</Form.Label>
-                        <Form.Control onBlur="handlePasswordChange" type="password" placeholder="Password" />
+                        <Form.Control onBlur={ handlePasswordChange} type="password" placeholder="Password" required/>
                     </Form.Group>
 
                     <Form.Group className="mb-3" controlId="formBasicPassword">
                         <Form.Label>Confirm Password</Form.Label>
-                        <Form.Control onBlur="handlePasswordChange" type="password" placeholder="Confirm Password" />
+                        <Form.Control onBlur={ handlePasswordChange} type="password" placeholder="Confirm Password" required/>
                     </Form.Group>
                     <p className="text-danger">{error}</p>
                     <Button className="btn btn-primary" variant="primary" type="submit">
-                        Submit
+                         Register
                     </Button>
                     <p className="my-4">Already Register? 
                         <Link className="text-decoration-none" to="/login"> Log In</Link>
@@ -44,7 +50,7 @@ const Register = () => {
             </div>
                     <p className="text-center">- Orders Register -</p>
             <div className="d-flex justify-content-center mb-5">
-               <button onClick={signInUsingGoogle} className="btn btn-outline-primary">Register With Google</button>
+               <button onClick={logInWithGoogle} className="btn btn-outline-primary">Register With Google</button>
             </div>
         </div>
     );
